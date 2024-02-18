@@ -3,6 +3,7 @@ import gymnasium
 import torch
 import numpy as np
 import cupy
+import numba
 from collections import deque
 import random
 from typing import Any, Dict, Union
@@ -22,15 +23,27 @@ class RLPipeline(abc.ABC):
 
     Fields:
 
-        `gymnasium.Env` environment: the enviroment the agent resides in.
+        None
     """
 
-    environment: gymnasium.Env
-    
     @abc.abstractmethod
-    def __init__(self, environment: gymnasium.Env):
+    def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> int:
 
-        self.environment = environment
+        """
+        With probability epsilon, chooses a random action, otherwise,
+        chooses an action using whatever the agent uses to determine the
+        optimal action.
+
+        Arguments:
+
+            `ArrayType` state: the state to use for the agent.
+
+            `float` epsilon: the probability of choosing a random action.
+
+        Returns:
+
+            The action chosen. 
+        """
 
     @abc.abstractmethod
     def train(self, **kwargs: Dict[str, Any]) -> None:
@@ -56,6 +69,56 @@ class RLPipeline(abc.ABC):
             `int` episodes: the number of episodes to run. Defaults
             to -1, i.e. runs episodes until the user quits.
         """
+
+class SingleAgentRLPipeline(abc.ABC):
+
+    """
+    Base class for a single agent RL pipeline.
+
+    Fields:
+
+        `gymnasium.Env` environment: the environment to train in.
+    """
+
+    environment: gymnasium.Env
+
+    @numba.jit
+    @abc.abstractmethod
+    def __init__(self, environment: gymnasium.Env):
+
+        self.environment = environment
+
+class MultiAgentRLPipeline(RLPipeline):
+
+    """
+    Base class for a multi agent RL pipeline. 
+
+    Fields:
+
+        `gymnasium.vector.VectorEnv` environment: the environment to train in.
+    """
+
+    environment: gymnasium.vector.VectorEnv
+
+    @numba.jit
+    @abc.abstractmethod
+    def __init__(self, environment: gymnasium.vector.VectorEnv):
+
+        self.environment = environment
+
+    def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> int:
+
+        random_number: float = random.random()
+
+        if random_number >= epsilon:
+
+            return self.environment.action_space.sample()
+
+        else:
+
+            action_distribution: torch.Tensor = self.q_function(state.reshape((1,)+state.shape))
+
+            return torch.argmax(action_distribution)[0]
 
 class ReplayBuffer:
 
@@ -95,4 +158,6 @@ class ReplayBuffer:
 
     def sample(self, batch_size: int) -> list[Transition]:
 
-        return random.sample(self.storage, batch_size)
+        sample_size: int = min(len(self.storage), batch_size)
+
+        return random.sample(self.storage, sample_size)

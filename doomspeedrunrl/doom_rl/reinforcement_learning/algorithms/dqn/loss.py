@@ -1,6 +1,6 @@
 import torch
-from base_classes import Transition
 import numba
+from doom_rl.reinforcement_learning.algorithms.base_classes import Transition
 
 @numba.jit
 def loss_function(q_function: torch.nn.Module, batch: list[Transition], discount_factor: float) -> torch.Tensor:
@@ -37,13 +37,13 @@ def loss_function(q_function: torch.nn.Module, batch: list[Transition], discount
     
     next_states_tensor: torch.Tensor = torch.stack(next_states, dim=0)
 
-    terminal_masks_tensor: torch.Tensor = torch.stack(terminal_mask, dim=0)
+    terminal_mask_tensor: torch.Tensor = torch.stack(terminal_mask, dim=0)
 
     # this trick ensures we can index the q values using the actions taken
     q_values_for_actions: torch.Tensor = q_function(current_states_tensor)[range(len(current_states)), actions_tensor]
 
     optimal_next_state_values: torch.Tensor = torch.max(q_function(next_states_tensor), axis=-1)[0]
 
-    target_q_values: torch.Tensor = rewards_tensor + discount_factor * (optimal_next_state_values * terminal_masks_tensor)
+    target_q_values: torch.Tensor = rewards_tensor + discount_factor * (optimal_next_state_values * terminal_mask_tensor)
 
     return torch.nn.functional.mse_loss(q_values_for_actions, target_q_values)
