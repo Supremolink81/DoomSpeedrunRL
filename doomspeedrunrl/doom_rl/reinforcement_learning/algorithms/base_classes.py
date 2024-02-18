@@ -3,7 +3,6 @@ import gymnasium
 import torch
 import numpy as np
 import cupy
-import numba
 from collections import deque
 import random
 from typing import Any, Dict, Union
@@ -23,7 +22,7 @@ class RLPipeline(abc.ABC):
 
     Fields:
 
-        None
+        `torch.device` device: the device to use for training and inference. 
     """
 
     @abc.abstractmethod
@@ -60,7 +59,7 @@ class RLPipeline(abc.ABC):
         """
 
     @abc.abstractmethod
-    def run(self, episodes: int = -1) -> None:
+    def run(self, episodes: int = -1, **kwargs: Dict[str, Any]) -> None:
         """
         Run a given number of episodes in the environment with a policy.
 
@@ -68,9 +67,26 @@ class RLPipeline(abc.ABC):
 
             `int` episodes: the number of episodes to run. Defaults
             to -1, i.e. runs episodes until the user quits.
+
+            `Dict[str, Any]` kwargs: keyword arguments for the 
+            state transforms and/or other utilities.
         """
 
-class SingleAgentRLPipeline(abc.ABC):
+    @abc.abstractmethod
+    def human_rendering(self) -> None:
+        """
+        Sets the render mode to human: i.e. makes it where
+
+        the environment is rendered on the screen
+        """
+    
+    @abc.abstractmethod
+    def no_rendering(self) -> None:
+        """
+        Disables rendering of any kind.
+        """
+
+class SingleAgentRLPipeline(RLPipeline):
 
     """
     Base class for a single agent RL pipeline.
@@ -82,11 +98,18 @@ class SingleAgentRLPipeline(abc.ABC):
 
     environment: gymnasium.Env
 
-    @numba.jit
     @abc.abstractmethod
     def __init__(self, environment: gymnasium.Env):
 
         self.environment = environment
+
+    def human_rendering(self) -> None:
+        
+        self.environment = gymnasium.make(self.environment.spec, render_mode="human")
+
+    def no_rendering(self) -> None:
+        
+        self.environment = gymnasium.make(self.environment.spec, render_mode=None)
 
 class MultiAgentRLPipeline(RLPipeline):
 
@@ -100,7 +123,6 @@ class MultiAgentRLPipeline(RLPipeline):
 
     environment: gymnasium.vector.VectorEnv
 
-    @numba.jit
     @abc.abstractmethod
     def __init__(self, environment: gymnasium.vector.VectorEnv):
 

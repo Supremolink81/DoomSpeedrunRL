@@ -1,11 +1,11 @@
 import torch
 import gymnasium
 from doom_rl.reinforcement_learning.algorithms.dqn.agents import DQN
-from doom_rl.reinforcement_learning.architectures.basic import CartPoleMLP
+from doom_rl.reinforcement_learning.architectures.basic import AcrobotMLP
 
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 0.001
 
-EPISODES = 10000
+EPISODES = 100
 
 REPLAY_BUFFER_CAPACITY = 500
 
@@ -19,9 +19,9 @@ DEVICE = torch.device("cuda:0")
 
 if __name__ == "__main__":
 
-    environment: gymnasium.Env = gymnasium.make("CartPole-v1")
+    environment: gymnasium.Env = gymnasium.make("Acrobot-v1")
 
-    network_architecture: CartPoleMLP = CartPoleMLP()
+    network_architecture: AcrobotMLP = AcrobotMLP()
 
     algorithm: DQN = DQN(environment, network_architecture, DEVICE)
 

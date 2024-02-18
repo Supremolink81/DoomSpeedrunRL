@@ -1,9 +1,7 @@
 import torch
-import numba
 from doom_rl.reinforcement_learning.algorithms.base_classes import Transition
 
-@numba.jit
-def loss_function(q_function: torch.nn.Module, batch: list[Transition], discount_factor: float) -> torch.Tensor:
+def loss_function(q_function: torch.nn.Module, batch: list[Transition], discount_factor: float, device: torch.device) -> torch.Tensor:
 
     """
     Loss function for Deep Q Learning, which is simply the
@@ -21,28 +19,38 @@ def loss_function(q_function: torch.nn.Module, batch: list[Transition], discount
         `list[Transition]` batch: the batch of state transitions to use to calculate the loss.
 
         `float` discount_factor: the discount factor for the projected return.
+
+        `torch.device` device: the device to use for tensors.
     
     Returns:
 
         a PyTorch tensor with the loss value.
     """
 
-    current_states, actions, rewards, next_states, terminal_mask = zip(*batch)
+    current_states, rewards, actions, next_states, terminal_mask = zip(*batch)
 
-    current_states_tensor: torch.Tensor = torch.stack(current_states, dim=0)
+    current_states_tensor: torch.Tensor = torch.stack(current_states, dim=0).to(device)
     
-    actions_tensor: torch.Tensor = torch.stack(actions, dim=0)
+    # int64 needed for indexing tensors
+    actions_tensor: torch.Tensor = torch.tensor(actions).type(torch.int64).to(device)
 
-    rewards_tensor: torch.Tensor = torch.stack(rewards, dim=0)
+    rewards_tensor: torch.Tensor = torch.tensor(rewards).to(device)
     
-    next_states_tensor: torch.Tensor = torch.stack(next_states, dim=0)
+    next_states_tensor: torch.Tensor = torch.stack(next_states, dim=0).to(device)
 
-    terminal_mask_tensor: torch.Tensor = torch.stack(terminal_mask, dim=0)
+    terminal_mask_tensor: torch.Tensor = torch.tensor(terminal_mask).to(device)
 
     # this trick ensures we can index the q values using the actions taken
-    q_values_for_actions: torch.Tensor = q_function(current_states_tensor)[range(len(current_states)), actions_tensor]
+    q_values: torch.Tensor = q_function(current_states_tensor)
 
-    optimal_next_state_values: torch.Tensor = torch.max(q_function(next_states_tensor), axis=-1)[0]
+    # reshaping to be compatible with torch.gather
+    actions_tensor = actions_tensor.reshape((-1, 1))
+
+    q_values_for_actions: torch.Tensor = torch.gather(q_values, dim=1, index=actions_tensor).reshape((-1))
+
+    a = q_function(next_states_tensor)
+
+    optimal_next_state_values: torch.Tensor = torch.max(a, axis=-1)[0]
 
     target_q_values: torch.Tensor = rewards_tensor + discount_factor * (optimal_next_state_values * terminal_mask_tensor)
 
