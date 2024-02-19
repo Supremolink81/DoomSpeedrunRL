@@ -5,7 +5,7 @@ from doom_rl.reinforcement_learning.architectures.basic import AcrobotMLP
 
 LEARNING_RATE = 0.001
 
-EPISODES = 100
+EPISODES = 10
 
 REPLAY_BUFFER_CAPACITY = 500
 

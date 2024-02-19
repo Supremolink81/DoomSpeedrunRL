@@ -7,9 +7,11 @@ from collections import deque
 import random
 from typing import Any, Dict, Union
 
-ArrayType = Union[np.array, torch.Tensor, cupy.array, int]
+ArrayType = Union[np.array, torch.Tensor, cupy.array]
 
 Transition = tuple[ArrayType, int, float, ArrayType]
+
+ActionType = Union[ArrayType, int]
 
 class RLPipeline(abc.ABC):
 
@@ -26,7 +28,7 @@ class RLPipeline(abc.ABC):
     """
 
     @abc.abstractmethod
-    def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> int:
+    def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> ActionType:
 
         """
         With probability epsilon, chooses a random action, otherwise,
