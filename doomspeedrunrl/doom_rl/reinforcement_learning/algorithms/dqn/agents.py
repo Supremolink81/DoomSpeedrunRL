@@ -51,7 +51,7 @@ class DQN(SingleAgentRLPipeline):
     
     def train(self, **kwargs: Dict[str, Any]) -> None:
 
-        self.no_rendering()
+        self.human_rendering()
 
         buffer: ReplayBuffer = ReplayBuffer(kwargs["replay_buffer_capacity"])
 
@@ -61,7 +61,7 @@ class DQN(SingleAgentRLPipeline):
 
         discount_factor: float = kwargs["discount_factor"]
 
-        epsilon: float = kwargs["epsilon"]
+        epsilon: Callable[[int], float] = kwargs["epsilon"]
 
         batch_size: int = kwargs["batch_size"]
 
@@ -81,7 +81,7 @@ class DQN(SingleAgentRLPipeline):
 
             while not terminated and not truncated:
 
-                action: ActionType = self.epsilon_greedy_action(current_state, epsilon)
+                action: ActionType = self.epsilon_greedy_action(current_state, epsilon(episode))
 
                 next_state, reward, terminated, truncated, _ = self.environment.step(action)
 
@@ -106,6 +106,8 @@ class DQN(SingleAgentRLPipeline):
                 optimizer.step()
 
                 current_state = next_state.clone()
+
+                print(action, loss)
 
             print(f"Episode {episode+1} finished.")
 

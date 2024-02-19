@@ -2,7 +2,7 @@ import torch
 import gymnasium
 from doom_rl.reinforcement_learning.algorithms.base_classes import *
 from doom_rl.reinforcement_learning.algorithms.ddpg.loss import *
-from typing import Callable, Optional
+from typing import Callable, Optional, Dict
 
 class DDPG(SingleAgentRLPipeline):
 
@@ -63,7 +63,7 @@ class DDPG(SingleAgentRLPipeline):
         
         self.device = device
 
-    def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> int:
+    def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> ActionType:
 
         random_number: float = random.random()
 
@@ -75,13 +75,15 @@ class DDPG(SingleAgentRLPipeline):
 
             with torch.no_grad():
 
-                action_distribution: torch.Tensor = self.actor_network(state.reshape((1,)+state.shape))
+                preprocessed_state: ArrayType = state.reshape((1,)+state.shape).double()
 
-                return action_distribution.cpu().numpy()
+                action_distribution: torch.Tensor = self.actor_network(preprocessed_state)
+
+                return action_distribution[0].cpu().numpy()
             
     def train(self, **kwargs: Dict[str, Any]) -> None:
 
-        self.no_rendering()
+        self.human_rendering()
 
         buffer: ReplayBuffer = ReplayBuffer(kwargs["replay_buffer_capacity"])
 
@@ -93,9 +95,11 @@ class DDPG(SingleAgentRLPipeline):
 
         discount_factor: float = kwargs["discount_factor"]
 
-        epsilon: float = kwargs["epsilon"]
+        epsilon: Callable[[int], float] = kwargs["epsilon"]
 
         batch_size: int = kwargs["batch_size"]
+
+        update_coefficient: float = kwargs["update_coefficient"]
 
         state_transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = kwargs.get("state_transform", None)
 
@@ -105,7 +109,7 @@ class DDPG(SingleAgentRLPipeline):
 
             truncated: bool = False
 
-            current_state: torch.Tensor = torch.as_tensor(self.environment.reset()[0]).to(self.device)
+            current_state: torch.Tensor = torch.as_tensor(self.environment.reset()[0]).to(self.device).double()
 
             if state_transform:
 
@@ -113,17 +117,19 @@ class DDPG(SingleAgentRLPipeline):
 
             while not terminated and not truncated:
 
-                action: ActionType = self.epsilon_greedy_action(current_state, epsilon)
+                action: ActionType = self.epsilon_greedy_action(current_state, epsilon(episode))
 
                 next_state, reward, terminated, truncated, _ = self.environment.step(action)
 
-                next_state = torch.as_tensor(next_state).to(self.device)
+                next_state = torch.as_tensor(next_state).double().to(self.device)
 
                 if state_transform:
 
                     next_state = state_transform(next_state)
+                
+                non_terminal_state: bool = not terminated and not truncated
 
-                buffer.add((current_state, reward, action, next_state))
+                buffer.add((current_state, reward, torch.as_tensor(action).double(), next_state, non_terminal_state))
 
                 critic_optimizer.zero_grad()
 
@@ -157,6 +163,8 @@ class DDPG(SingleAgentRLPipeline):
                 actor_optimizer.step()
 
                 current_state = next_state.clone()
+
+                self._target_update(update_coefficient)
 
             print(f"Episode {episode+1} finished.")
     
@@ -194,3 +202,29 @@ class DDPG(SingleAgentRLPipeline):
                     current_state = next_state.clone()
 
                 self.environment.render()
+
+    def _target_update(self, update_coefficient: float) -> None:
+
+        target_actor_state_dict: Dict[str, Any] = self.target_actor_network.state_dict()
+
+        target_critic_state_dict: Dict[str, Any] = self.target_critic_network.state_dict()
+
+        actor_state_dict: Dict[str, Any] = self.actor_network.state_dict()
+
+        critic_state_dict: Dict[str, Any] = self.critic_network.state_dict()
+
+        for parameter_name in target_actor_state_dict:
+
+            updated_parameter_portion: torch.Tensor = update_coefficient*actor_state_dict[parameter_name]
+
+            non_updated_parameter_portion: torch.Tensor = (1-update_coefficient)*target_actor_state_dict[parameter_name]
+
+            target_actor_state_dict[parameter_name] = updated_parameter_portion + non_updated_parameter_portion
+
+        for parameter_name in target_critic_state_dict:
+
+            updated_parameter_portion: torch.Tensor = update_coefficient*critic_state_dict[parameter_name]
+
+            non_updated_parameter_portion: torch.Tensor = (1-update_coefficient)*target_critic_state_dict[parameter_name]
+
+            target_actor_state_dict[parameter_name] = updated_parameter_portion + non_updated_parameter_portion

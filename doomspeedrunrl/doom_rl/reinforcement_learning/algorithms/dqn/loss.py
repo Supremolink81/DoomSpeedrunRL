@@ -54,4 +54,4 @@ def loss_function_dqn(q_function: torch.nn.Module, batch: list[Transition], disc
 
     target_q_values: torch.Tensor = rewards_tensor + discount_factor * (optimal_next_state_values * terminal_mask_tensor)
 
-    return torch.nn.functional.mse_loss(q_values_for_actions, target_q_values)
+    return torch.nn.functional.mse_loss(q_values_for_actions, target_q_values.detach())

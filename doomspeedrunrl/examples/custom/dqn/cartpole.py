@@ -1,19 +1,17 @@
 import torch
 import gymnasium
 from doom_rl.reinforcement_learning.algorithms.dqn.agents import DQN
-from doom_rl.reinforcement_learning.architectures.basic import CartPoleMLP
+from doom_rl.reinforcement_learning.architectures.discrete import CartPoleMLP
 
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 0.0000000001
 
 EPISODES = 10000
 
-REPLAY_BUFFER_CAPACITY = 1000
+REPLAY_BUFFER_CAPACITY = 10000
 
 DISCOUNT_FACTOR = 0.99
 
-EPSILON = 0.2
-
-BATCH_SIZE = 100
+BATCH_SIZE = 1000
 
 DEVICE = torch.device("cuda:0")
 
@@ -30,7 +28,7 @@ if __name__ == "__main__":
         episodes=EPISODES,
         replay_buffer_capacity=REPLAY_BUFFER_CAPACITY,
         discount_factor=DISCOUNT_FACTOR,
-        epsilon=EPSILON,
+        epsilon=lambda episode: 1 / (1 + episode / 100),
         batch_size=BATCH_SIZE,
     )
 

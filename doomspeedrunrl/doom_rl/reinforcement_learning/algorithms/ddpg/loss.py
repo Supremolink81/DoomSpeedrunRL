@@ -44,7 +44,7 @@ def loss_function_ddpg_critic(
         a PyTorch tensor with the loss value.
     """
 
-    current_states, rewards, actions, next_states = zip(*batch)
+    current_states, rewards, actions, next_states, terminal_mask = zip(*batch)
 
     current_states_tensor: torch.Tensor = torch.stack(current_states, dim=0).to(device)
     
@@ -57,15 +57,19 @@ def loss_function_ddpg_critic(
 
     states_actions_tensor: torch.Tensor = torch.cat((current_states_tensor, actions_tensor), axis=1)
 
-    critic_q_values: torch.Tensor = critic_network(states_actions_tensor)
+    terminal_mask_tensor: torch.Tensor = torch.tensor(terminal_mask).to(device)
+
+    # reshaping to remove the (, 1) at the end and prevent broadcasting issues
+    critic_q_values: torch.Tensor = critic_network(states_actions_tensor).reshape((-1))
 
     target_actor_actions: torch.Tensor = target_actor_network(next_states_tensor)
 
-    target_states_actions_tensor: torch.Tensor = torch.cat((next_states_tensor, actions_tensor), axis=1)
+    target_states_actions_tensor: torch.Tensor = torch.cat((next_states_tensor, target_actor_actions), axis=1)
 
-    target_critic_q_values: torch.Tensor = target_critic_network(target_states_actions_tensor)
+    # reshaping to remove the (, 1) at the end and prevent broadcasting issues
+    target_critic_q_values: torch.Tensor = target_critic_network(target_states_actions_tensor).reshape((-1))
 
-    discounted_return: torch.Tensor = rewards_tensor + discount_factor * target_critic_q_values
+    discounted_return: torch.Tensor = rewards_tensor + discount_factor * (target_critic_q_values * terminal_mask_tensor)
 
     return torch.nn.functional.mse_loss(critic_q_values, discounted_return)
 
@@ -93,7 +97,7 @@ def loss_function_ddpg_actor(
         a PyTorch tensor with the loss value.
     """
 
-    current_states, _, actions, _ = zip(*batch)
+    current_states, _, actions, _, _ = zip(*batch)
 
     current_states_tensor: torch.Tensor = torch.stack(current_states, dim=0).to(device)
     
@@ -104,4 +108,4 @@ def loss_function_ddpg_actor(
 
     critic_q_values: torch.Tensor = critic_network(states_actions_tensor)
 
-    return torch.mean(critic_q_values)
+    return -torch.mean(critic_q_values)
