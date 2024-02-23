@@ -3,7 +3,7 @@ import numba
 import gymnasium
 import random
 from typing import Optional, Callable
-from base_classes import *
+from doom_rl.reinforcement_learning.algorithms.base_classes import *
 
 class A2C(MultiAgentRLPipeline):
 
@@ -22,19 +22,50 @@ class A2C(MultiAgentRLPipeline):
 
         `gymnasium.vector.VectorEnv` environment: the environment to train in.
 
-        `torch.nn.Module` target_q_function: the target Q function.
+        `torch.nn.Module` actor_network: the actor network.
+
+        `torch.nn.Module` critic_network: the critic network.
+
+        `bool` discrete: whether the pipeline is made for discrete or continuous action spaces.
     """
 
-    target_q_function: torch.nn.Module
+    actor_network: torch.nn.Module 
 
-    @numba.jit(nopython=True)
-    def __init__(self, environment: gymnasium.vector.VectorEnv, target_q_function_architecture: torch.nn.Module):
+    critic_network: torch.nn.Module 
 
-        super().__init__(environment)
+    discrete: bool
 
-        self.target_q_function = target_q_function_architecture
+    device: torch.device
 
-    @numba.jit(nopython=True)
+    def __init__(self, 
+        environment: gymnasium.Env, 
+        num_threads: int,
+        discrete: bool,
+        actor_network_architecture: torch.nn.Module, 
+        critic_network_architecture: torch.nn.Module,
+        device: torch.device,
+    ):
+        
+        action_space: gymnasium.Space = environment.action_space
+
+        observation_space: gymnasium.Space = environment.observation_space
+
+        vectorized_environment: gymnasium.vector.VectorEnv = gymnasium.vector.VectorEnv(
+            num_threads, 
+            observation_space,
+            action_space
+        )
+
+        super().__init__(vectorized_environment)
+
+        self.actor_network = actor_network_architecture.to(device)
+
+        self.critic_network = critic_network_architecture.to(device)
+
+        self.discrete = discrete
+
+        self.device = device
+
     def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> int:
 
         random_number: float = random.random()
@@ -47,6 +78,4 @@ class A2C(MultiAgentRLPipeline):
 
             with torch.no_grad():
 
-                action_distribution: torch.Tensor = self.target_q_function(state.reshape((1,)+state.shape))
-
-                return torch.argmax(action_distribution)[0]
+                pass

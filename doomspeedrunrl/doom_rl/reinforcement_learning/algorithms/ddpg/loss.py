@@ -2,13 +2,13 @@ import torch
 from doom_rl.reinforcement_learning.algorithms.base_classes import Transition
 
 def loss_function_ddpg_critic(
-        critic_network: torch.nn.Module, 
-        target_critic_network: torch.nn.Module,
-        target_actor_network: torch.nn.Module, 
-        batch: list[Transition], 
-        discount_factor: float, 
-        device: torch.device
-    ) -> torch.Tensor:
+    critic_network: torch.nn.Module, 
+    target_critic_network: torch.nn.Module,
+    target_actor_network: torch.nn.Module, 
+    batch: list[Transition], 
+    discount_factor: float, 
+    device: torch.device
+) -> torch.Tensor:
 
     """
     Loss function for the DDPG algorithm's critic, which is simply
@@ -74,10 +74,10 @@ def loss_function_ddpg_critic(
     return torch.nn.functional.mse_loss(critic_q_values, discounted_return)
 
 def loss_function_ddpg_actor(
-        critic_network: torch.nn.Module,
-        batch: list[Transition], 
-        device: torch.device,  
-    ) -> torch.Tensor:
+    critic_network: torch.nn.Module,
+    batch: list[Transition], 
+    device: torch.device,  
+) -> torch.Tensor:
     
     """
     Loss function for the DDPG algorithm's actor, which is simply

@@ -20,16 +20,16 @@ class DQN(SingleAgentRLPipeline):
 
         `gymnasium.Env` environment: the environment the agent resides in.
 
-        `torch.nn.Module` q_function: the Q function.
+        `torch.nn.Module` q_network: the Q function.
     """
 
-    q_function: torch.nn.Module
+    q_network: torch.nn.Module
 
-    def __init__(self, environment: gymnasium.Env, q_function_architecture: torch.nn.Module, device: torch.device):
+    def __init__(self, environment: gymnasium.Env, q_network_architecture: torch.nn.Module, device: torch.device):
 
         super().__init__(environment)
 
-        self.q_function = q_function_architecture.to(device)
+        self.q_network = q_network_architecture.to(device)
         
         self.device = device
 
@@ -45,7 +45,7 @@ class DQN(SingleAgentRLPipeline):
 
             with torch.no_grad():
 
-                action_distribution: torch.Tensor = self.q_function(state.reshape((1,)+state.shape))
+                action_distribution: torch.Tensor = self.q_network(state.reshape((1,)+state.shape))
 
                 return torch.argmax(action_distribution).item()
     
@@ -99,7 +99,7 @@ class DQN(SingleAgentRLPipeline):
 
                 batch: list[Transition] = buffer.sample(batch_size)
 
-                loss: torch.Tensor = loss_function_dqn(self.q_function, batch, discount_factor,self.device)
+                loss: torch.Tensor = loss_function_dqn(self.q_network, batch, discount_factor,self.device)
 
                 loss.backward()
 
