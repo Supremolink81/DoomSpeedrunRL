@@ -1,9 +1,8 @@
-import torch
 import plotly
 from typing import Any
 from doom_rl.reinforcement_learning.benchmarking.base_classes import RealTimeGraph
 
-class RewardCurve(RealTimeGraph):
+class MovingAverageGraph(RealTimeGraph):
 
     """
     A line graph representing a reward average over time.
