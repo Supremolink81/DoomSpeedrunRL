@@ -5,7 +5,8 @@ import numpy as np
 import cupy
 from collections import deque
 import random
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, Iterable
+from doom_rl.reinforcement_learning.benchmarking.base_classes import MetricTracker
 
 ArrayType = Union[np.array, torch.Tensor, cupy.array]
 
@@ -87,6 +88,25 @@ class RLPipeline(abc.ABC):
         """
         Disables rendering of any kind.
         """
+
+    @abc.abstractmethod
+    def _update_metrics(self, metrics: Iterable[MetricTracker], info: Dict[str, Any]) -> None:
+
+        """
+        Updates a collection of metric trackers using state collected from
+
+        training and/or inference.
+
+        Arguments:
+
+            `Iterable[MetricTracker]` metrics: the metrics to update.
+
+            `Dict[str, Any]` info: the info to use for updating.
+        """
+        
+        for metric in metrics:
+
+            metric.update(info)
 
 class SingleAgentRLPipeline(RLPipeline):
 

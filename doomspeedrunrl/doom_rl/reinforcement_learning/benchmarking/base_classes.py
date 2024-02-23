@@ -1,10 +1,10 @@
 import abc
 from typing import Any
 
-class RealTimeGraph(abc.ABC):
+class MetricTracker(abc.ABC):
 
     """
-    An abstract class representing real time graphs.
+    An abstract class representing metric trackers for RL.
 
     Has an update rule for continuous updates as new data from 
 
@@ -12,7 +12,35 @@ class RealTimeGraph(abc.ABC):
 
     Fields:
 
-        `dict[str, Any]` graph_settings: the settings for the graph.
+        `dict[str, Any]` settings: the settings for the metric tracker.
+    """
+
+    settings: dict[str, Any]
+
+    @abc.abstractmethod
+    def __init__(self, settings: dict[str, Any]):
+
+        self.settings = settings
+
+    @abc.abstractmethod
+    def update(self, info: dict[str, Any]) -> None:
+
+        """
+        Updates the metric using info from the RL pipeline.
+
+        Arguments:
+
+            `dict[str, Any]` info: the info to use to update the metric.
+        """
+
+class RealTimeGraph(MetricTracker):
+
+    """
+    An abstract class representing real time graphs.
+
+    Has an update rule for continuous updates as new data from 
+
+    an RL pipeline comes in.
     """
 
     graph_settings: dict[str, Any]
@@ -20,18 +48,7 @@ class RealTimeGraph(abc.ABC):
     @abc.abstractmethod
     def __init__(self, graph_settings: dict[str, Any]):
 
-        self.graph_settings = graph_settings
-
-    @abc.abstractmethod
-    def update(self, info: dict[str, Any]) -> None:
-
-        """
-        Updates the graph using info from the RL pipeline.
-
-        Arguments:
-
-            `dict[str, Any]` info: the info to use to update the graph.
-        """
+        super().__init__(graph_settings)
 
     @abc.abstractmethod
     def graph(self) -> None:
