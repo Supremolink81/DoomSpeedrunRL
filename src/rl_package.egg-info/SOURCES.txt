@@ -1,0 +1,8 @@
+README.md
+setup.cfg
+setup.py
+doomspeedrunrl/doom_rl.egg-info/PKG-INFO
+doomspeedrunrl/doom_rl.egg-info/SOURCES.txt
+doomspeedrunrl/doom_rl.egg-info/dependency_links.txt
+doomspeedrunrl/doom_rl.egg-info/requires.txt
+doomspeedrunrl/doom_rl.egg-info/top_level.txt

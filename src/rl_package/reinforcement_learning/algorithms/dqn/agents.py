@@ -2,8 +2,8 @@ import torch
 import gymnasium
 import random
 from typing import Optional, Callable
-from doom_rl.reinforcement_learning.algorithms.base_classes import *
-from doom_rl.reinforcement_learning.algorithms.dqn.loss import loss_function_dqn
+from rl_package.reinforcement_learning.algorithms.base_classes import *
+from rl_package.reinforcement_learning.algorithms.dqn.loss import loss_function_dqn
 
 class DQN(SingleAgentRLPipeline):
 

@@ -3,7 +3,7 @@ import numba
 import gymnasium
 import random
 from typing import Optional, Callable
-from doom_rl.reinforcement_learning.algorithms.base_classes import *
+from rl_package.reinforcement_learning.algorithms.base_classes import *
 
 class A2C(MultiAgentRLPipeline):
 

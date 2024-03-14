@@ -6,7 +6,7 @@ import cupy
 from collections import deque
 import random
 from typing import Any, Dict, Union, Iterable
-from doom_rl.reinforcement_learning.benchmarking.base_classes import MetricTracker
+from rl_package.reinforcement_learning.benchmarking.base_classes import MetricTracker
 
 ArrayType = Union[np.array, torch.Tensor, cupy.array]
 

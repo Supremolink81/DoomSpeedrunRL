@@ -1,7 +1,7 @@
 import torch
 import gymnasium
-from doom_rl.reinforcement_learning.algorithms.dqn.agents import DQN
-from doom_rl.reinforcement_learning.architectures.discrete import AcrobotMLP
+from rl_package.reinforcement_learning.algorithms.dqn.agents import DQN
+from rl_package.reinforcement_learning.architectures.discrete import AcrobotMLP
 
 LEARNING_RATE = 0.001
 

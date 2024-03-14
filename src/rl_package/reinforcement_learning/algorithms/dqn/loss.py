@@ -1,5 +1,5 @@
 import torch
-from doom_rl.reinforcement_learning.algorithms.base_classes import Transition
+from rl_package.reinforcement_learning.algorithms.base_classes import Transition
 
 def loss_function_dqn(q_function: torch.nn.Module, batch: list[Transition], discount_factor: float, device: torch.device) -> torch.Tensor:
 

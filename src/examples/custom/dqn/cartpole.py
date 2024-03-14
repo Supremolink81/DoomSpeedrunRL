@@ -1,7 +1,7 @@
 import torch
 import gymnasium
-from doom_rl.reinforcement_learning.algorithms.dqn.agents import DQN
-from doom_rl.reinforcement_learning.architectures.discrete import CartPoleMLP
+from rl_package.reinforcement_learning.algorithms.dqn.agents import DQN
+from rl_package.reinforcement_learning.architectures.discrete import CartPoleMLP
 
 LEARNING_RATE = 0.0000000001
 

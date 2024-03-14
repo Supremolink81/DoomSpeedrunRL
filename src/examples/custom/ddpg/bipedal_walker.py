@@ -1,7 +1,7 @@
 import torch
 import gymnasium
-from doom_rl.reinforcement_learning.algorithms.ddpg.agents import DDPG
-from doom_rl.reinforcement_learning.architectures.continuous import BipedalWalkerActorMLP, BipedalWalkerCriticMLP
+from rl_package.reinforcement_learning.algorithms.ddpg.agents import DDPG
+from rl_package.reinforcement_learning.architectures.continuous import BipedalWalkerActorMLP, BipedalWalkerCriticMLP
 
 LEARNING_RATE = 0.0001
 

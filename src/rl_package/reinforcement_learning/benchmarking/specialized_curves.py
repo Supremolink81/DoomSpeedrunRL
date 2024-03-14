@@ -1,6 +1,6 @@
 import plotly
 from typing import Any
-from doom_rl.reinforcement_learning.benchmarking.base_classes import RealTimeGraph
+from rl_package.reinforcement_learning.benchmarking.base_classes import RealTimeGraph
 
 class MovingAverageGraph(RealTimeGraph):
 
