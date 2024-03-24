@@ -2,13 +2,12 @@ import abc
 import gymnasium
 import torch
 import numpy as np
-import cupy
 from collections import deque
 import random
 from typing import Any, Dict, Union, Iterable
 from rl_package.reinforcement_learning.benchmarking.base_classes import MetricTracker
 
-ArrayType = Union[np.array, torch.Tensor, cupy.array]
+ArrayType = Union[np.array, torch.Tensor]
 
 Transition = tuple[ArrayType, int, float, ArrayType]
 
@@ -29,18 +28,16 @@ class RLPipeline(abc.ABC):
     """
 
     @abc.abstractmethod
-    def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> ActionType:
+    def action(self, state: ArrayType, kwargs: dict[str, Any]) -> ActionType:
 
         """
-        With probability epsilon, chooses a random action, otherwise,
-        chooses an action using whatever the agent uses to determine the
-        optimal action.
+        Abstract function to select an action
 
         Arguments:
 
             `ArrayType` state: the state to use for the agent.
 
-            `float` epsilon: the probability of choosing a random action.
+            `dict[str, Any]` kwargs: keyword arguments for the policy.
 
         Returns:
 

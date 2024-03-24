@@ -33,7 +33,9 @@ class DQN(SingleAgentRLPipeline):
         
         self.device = device
 
-    def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> int:
+    def action(self, state: ArrayType, kwargs: dict[str, Any]) -> int:
+
+        epsilon: float = kwargs["epsilon"]
 
         random_number: float = random.random()
 

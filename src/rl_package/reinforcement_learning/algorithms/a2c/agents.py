@@ -1,5 +1,4 @@
 import torch
-import numba
 import gymnasium
 import random
 from typing import Optional, Callable
@@ -66,7 +65,9 @@ class A2C(MultiAgentRLPipeline):
 
         self.device = device
 
-    def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> int:
+    def action(self, state: ArrayType, kwargs: dict[str, Any]) -> int:
+
+        epsilon: float = kwargs["epsilon"]
 
         random_number: float = random.random()
 

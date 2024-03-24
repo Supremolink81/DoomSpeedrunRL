@@ -1,7 +1,7 @@
 import torch
 import gymnasium
-from doom_rl.reinforcement_learning.algorithms.base_classes import *
-from doom_rl.reinforcement_learning.algorithms.ddpg.loss import *
+from rl_package.reinforcement_learning.algorithms.base_classes import *
+from rl_package.reinforcement_learning.algorithms.ddpg.loss import *
 from typing import Callable, Optional, Dict
 
 class DDPG(SingleAgentRLPipeline):
@@ -63,7 +63,9 @@ class DDPG(SingleAgentRLPipeline):
         
         self.device = device
 
-    def epsilon_greedy_action(self, state: ArrayType, epsilon: float) -> ActionType:
+    def action(self, state: ArrayType, kwargs: dict[str, Any]) -> ActionType:
+
+        epsilon: float = kwargs["epsilon"]
 
         random_number: float = random.random()
 
@@ -133,7 +135,7 @@ class DDPG(SingleAgentRLPipeline):
 
                 critic_optimizer.zero_grad()
 
-                batch: list[Transition] = buffer.sample(batch_size)
+                batch: Iterable = buffer.sample(batch_size)
 
                 critic_loss: torch.Tensor = loss_function_ddpg_critic(
                     self.critic_network,
@@ -147,8 +149,6 @@ class DDPG(SingleAgentRLPipeline):
                 critic_loss.backward()
 
                 critic_optimizer.step()
-
-                batch: list[Transition] = buffer.sample(batch_size)
 
                 actor_optimizer.zero_grad()
 
