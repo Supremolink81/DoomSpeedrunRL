@@ -13,9 +13,7 @@ class DDPG(SingleAgentRLPipeline):
 
     to choose actions, and a critic network to update the optimal
 
-    paths and the actor. 
-
-    Original Paper: Continuous Control With Deep
+    paths and the actor. Original Paper: Continuous Control With Deep
 
     Reinforcement Learning by Lillicrap et al: https://arxiv.org/pdf/1509.02971.pdf
 
@@ -63,7 +61,7 @@ class DDPG(SingleAgentRLPipeline):
         
         self.device = device
 
-    def action(self, state: ArrayType, kwargs: dict[str, Any]) -> ActionType:
+    def action(self, state: ArrayType, **kwargs: dict[str, Any]) -> ActionType:
 
         epsilon: float = kwargs["epsilon"]
 
@@ -119,7 +117,7 @@ class DDPG(SingleAgentRLPipeline):
 
             while not terminated and not truncated:
 
-                action: ActionType = self.epsilon_greedy_action(current_state, epsilon(episode))
+                action: ActionType = self.epsilon_greedy_action(current_state, epsilon=epsilon(episode))
 
                 next_state, reward, terminated, truncated, _ = self.environment.step(action)
 

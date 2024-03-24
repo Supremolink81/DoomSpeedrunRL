@@ -27,8 +27,10 @@ class RLPipeline(abc.ABC):
         `torch.device` device: the device to use for training and inference. 
     """
 
+    device: torch.device
+
     @abc.abstractmethod
-    def action(self, state: ArrayType, kwargs: dict[str, Any]) -> ActionType:
+    def action(self, state: ArrayType, **kwargs: dict[str, Any]) -> ActionType:
 
         """
         Abstract function to select an action
@@ -37,7 +39,7 @@ class RLPipeline(abc.ABC):
 
             `ArrayType` state: the state to use for the agent.
 
-            `dict[str, Any]` kwargs: keyword arguments for the policy.
+            `dict[str, Any]` **kwargs: keyword arguments for the policy.
 
         Returns:
 

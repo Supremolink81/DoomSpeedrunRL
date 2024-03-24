@@ -65,7 +65,7 @@ class A2C(MultiAgentRLPipeline):
 
         self.device = device
 
-    def action(self, state: ArrayType, kwargs: dict[str, Any]) -> int:
+    def action(self, state: ArrayType, **kwargs: dict[str, Any]) -> int:
 
         epsilon: float = kwargs["epsilon"]
 

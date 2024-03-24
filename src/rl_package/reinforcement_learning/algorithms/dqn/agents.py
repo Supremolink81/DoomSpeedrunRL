@@ -33,7 +33,7 @@ class DQN(SingleAgentRLPipeline):
         
         self.device = device
 
-    def action(self, state: ArrayType, kwargs: dict[str, Any]) -> int:
+    def action(self, state: ArrayType, **kwargs: dict[str, Any]) -> int:
 
         epsilon: float = kwargs["epsilon"]
 
@@ -83,7 +83,7 @@ class DQN(SingleAgentRLPipeline):
 
             while not terminated and not truncated:
 
-                action: ActionType = self.epsilon_greedy_action(current_state, epsilon(episode))
+                action: ActionType = self.action(current_state, epsilon=epsilon(episode))
 
                 next_state, reward, terminated, truncated, _ = self.environment.step(action)
 
