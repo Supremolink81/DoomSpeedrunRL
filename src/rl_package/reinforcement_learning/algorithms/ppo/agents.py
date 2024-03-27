@@ -1,6 +1,8 @@
 import torch
 import gymnasium
+from typing import Callable, Optional
 from rl_package.reinforcement_learning.algorithms.base_classes import *
+from rl_package.reinforcement_learning.algorithms.ppo.utils import *
 from rl_package.utils.arrays import triangular_power_matrix
 
 class PPO(SingleAgentRLPipeline):
@@ -42,15 +44,108 @@ class PPO(SingleAgentRLPipeline):
         self.actor_old = actor_architecture.to(device)
 
         self.device = device
+
+    def action(self, state: ArrayType, **_: dict[str, Any]) -> int:
+
+        with torch.no_grad():
+
+            log_action_distribution: torch.Tensor = torch.nn.functional.log_softmax(self.actor(state.reshape((1,)+state.shape)))
+
+            return torch.argmax(log_action_distribution).item()
+        
+    def train(self, discount_factor: float = 0.99, state_transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = None, **kwargs: dict[str, torch.Any]) -> None:
+        
+        clip_epsilon: Callable[[int], float] = kwargs["epsilon"]
+
+        # important note; if task is episodic, "timesteps" must be much less than episode length
+        timesteps: int = kwargs["timesteps"]
+
+        iterations: torch.Tensor = kwargs["iterations"]
+
+        epochs: int = kwargs['epochs']
+
+        batch_size: int = kwargs["batch_size"]
+
+        states: list[torch.Tensor] = []
+
+        actions: list[int] = []
+
+        rewards: list[float] = []
+
+        current_state: torch.Tensor = torch.as_tensor(self.environment.reset()[0]).to(self.device)
+
+        terminated: bool = False
+
+        truncated: bool = False
+
+        for iteration in range(iterations):
+
+            timestep: int = 0
+
+            if state_transform:
+
+                current_state = state_transform(current_state)
+
+            states.append(current_state)
+
+            while timestep < timesteps and not terminated and not truncated:
+
+                action: ActionType = self.action(current_state)
+
+                actions.append(action)
+
+                next_state, reward, terminated, truncated, _ = self.environment.step(action)
+
+                rewards.append(reward)
+
+                next_state = torch.as_tensor(next_state).to(self.device)
+
+                if state_transform:
+
+                    next_state = state_transform(next_state)
+
+                current_state = next_state
+
+                states.append(current_state)
+
+                timestep += 1
+
+            if terminated or truncated:
+
+                terminated = False
+
+                truncated = False
+
+                current_state: torch.Tensor = torch.as_tensor(self.environment.reset()[0]).to(self.device)
+
+        states_tensor: torch.Tensor = torch.stack(states, dim=0)
+
+        rewards_tensor: torch.Tensor = torch.stack(rewards, dim=0)
+
+        advantage_estimates: torch.Tensor = self._compute_advantage_estimates(states_tensor, rewards_tensor, discount_factor)
+
+        advantage_dataset: data.Dataset = AdvantageEstimateDataset(advantage_estimates)
+
+        advantage_dataloader: data.DataLoader = data.DataLoader(advantage_dataset, batch_size=batch_size, shuffle=True)
+
+        for epoch in range(epochs):
+
+            for advantage_batch in advantage_dataloader:
+
+                probability_ratio: float = self._probability_ratio()
     
-    def _probability_ratio(self, state: torch.Tensor, action: int, alpha: float) -> float:
+    def _probability_ratio(self, state: torch.Tensor, action: int) -> float:
 
         """
         Calculates the probability ratio between the old (current)
 
-        policy and a new policy which is a convex combination of the
+        policy and the current updates policy.
 
-        old policy and the greedy policy
+        Arguments:
+
+            `torch.Tensor` state: the state for the probability ratio.
+
+            `int` action: the action for the probability ratio.
         """
 
         old_policy_probability: torch.Tensor = self.actor_old(state)[action]
@@ -58,14 +153,6 @@ class PPO(SingleAgentRLPipeline):
         new_policy_probability: torch.Tensor = self.actor(state)[action]
 
         return old_policy_probability / new_policy_probability
-
-    def action(self, state: ArrayType, **kwargs: dict[str, Any]) -> int:
-
-        with torch.no_grad():
-
-            log_action_distribution: torch.Tensor = torch.nn.functional.log_softmax(self.actor(state.reshape((1,)+state.shape)))
-
-            return torch.argmax(log_action_distribution).item()
         
     def _state_value_function(self, states: torch.Tensor) -> torch.Tensor:
 

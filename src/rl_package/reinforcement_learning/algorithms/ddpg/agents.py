@@ -1,7 +1,7 @@
 import torch
 import gymnasium
 from rl_package.reinforcement_learning.algorithms.base_classes import *
-from rl_package.reinforcement_learning.algorithms.ddpg.loss import *
+from rl_package.reinforcement_learning.algorithms.ddpg.utils import *
 from typing import Callable, Optional, Dict
 
 class DDPG(SingleAgentRLPipeline):

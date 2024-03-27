@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from collections import deque
 import random
-from typing import Any, Dict, Union, Iterable
+from typing import Any, Dict, Union, Iterable, Optional, Callable
 from rl_package.reinforcement_learning.benchmarking.base_classes import MetricTracker
 
 ArrayType = Union[np.array, torch.Tensor]
@@ -47,17 +47,25 @@ class RLPipeline(abc.ABC):
         """
 
     @abc.abstractmethod
-    def train(self, **kwargs: Dict[str, Any]) -> None:
+    def train(self, 
+        discount_factor: float = 0.99, 
+        state_transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = None, 
+        **kwargs: Dict[str, Any]
+    ) -> None:
         """
         Trains the agent using the given environment. 
 
         Arguments:
 
-            `gymnasium.Env` environment: the environment to train in.
+            `float` discount_factor: the discount factor for returns; default is 0.99.
 
-            `Dict[str, Any]` kwargs: keyword arguments for specific
+            `Optional[Callable[[torch.Tensor], torch.Tensor]]` state_transform: an optional
+
+            function used to transform the state. Defaults to None.
+
+            `Dict[str, Any]` **kwargs: keyword arguments for specific
             agent types (examples include: the discount factor, the
-            learning rate, and the replay buffer size).
+            learning rate, the number of timesteps and the replay buffer size).
         """
 
     @abc.abstractmethod

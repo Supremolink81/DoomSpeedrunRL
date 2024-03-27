@@ -1,5 +1,5 @@
 import torch
-from doom_rl.reinforcement_learning.algorithms.base_classes import Transition
+from rl_package.reinforcement_learning.algorithms.base_classes import Transition
 
 def loss_function_ddpg_critic(
     critic_network: torch.nn.Module, 

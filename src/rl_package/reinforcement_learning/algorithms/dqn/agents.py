@@ -3,7 +3,7 @@ import gymnasium
 import random
 from typing import Optional, Callable
 from rl_package.reinforcement_learning.algorithms.base_classes import *
-from rl_package.reinforcement_learning.algorithms.dqn.loss import loss_function_dqn
+from rl_package.reinforcement_learning.algorithms.dqn.utils import loss_function_dqn
 
 class DQN(SingleAgentRLPipeline):
 
@@ -51,7 +51,7 @@ class DQN(SingleAgentRLPipeline):
 
                 return torch.argmax(action_distribution).item()
     
-    def train(self, **kwargs: Dict[str, Any]) -> None:
+    def train(self, discount_factor: float = 0.99, state_transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = None, **kwargs: Dict[str, Any]) -> None:
 
         self.human_rendering()
 
@@ -61,13 +61,9 @@ class DQN(SingleAgentRLPipeline):
 
         episodes: int = kwargs["episodes"]
 
-        discount_factor: float = kwargs["discount_factor"]
-
         epsilon: Callable[[int], float] = kwargs["epsilon"]
 
         batch_size: int = kwargs["batch_size"]
-
-        state_transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = kwargs.get("state_transform", None)
 
         for episode in range(episodes):
 
