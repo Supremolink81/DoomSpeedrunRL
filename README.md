@@ -1,3 +1,3 @@
-## HeuristicsCatanAndML (WIP)
+## RLPlayground
 
-A project to train an agent to play Settlers of Catan using Reinforcement Learning.
+A place for me to toy around with implementing RL algorithms.

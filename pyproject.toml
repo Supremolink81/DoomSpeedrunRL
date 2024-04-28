@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "rl_package"
+version = "0.0.1"
+requires-python = ">= 3.8"
+authors = [
+    {name = "Supremolink81"}
+]
+dependencies = [
+    "gymnasium==0.29.1",
+    "numpy==1.26.2",
+    "glfw==2.6.4",
+    "tensorboard==2.15.1",
+    "tensorboard-data-server==0.7.2",
+    "mujoco==3.1.2",
+]
+[tool.poetry.dependencies]
+torch = {version = "2.1.2+cu118", source = "pytorch"}
+[[tool.poetry.source]]
+name="pytorch"
+url="https://download.pytorch.org/whl/cu118"
